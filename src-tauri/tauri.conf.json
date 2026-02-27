@@ -1,0 +1,40 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "lantern-riddle",
+  "version": "0.1.0",
+      "identifier": "com.lantern.riddle",
+  
+  "build": {
+    "frontendDist": "../template/admin",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build:frontend"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "元宵猜灯谜管理系统",
+        "devtools": true,
+        "width": 800,
+        "height": 600,
+        "decorations": false,
+    "fullscreen": true,
+    "resizable": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

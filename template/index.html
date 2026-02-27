@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta content="telephone=no" name="format-detection"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1"/>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>元宵灯谜</title>
+    <link rel="stylesheet" href="css/style.css"/>
+    <script type="text/javascript" src="js/common.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <div class="top-bar">
+        <div class="bar-l">
+            <div class="back hide" onclick="showHome()"><a href="javascript:void(0);"></a></div>
+            <div class="logo"><img src="images/logo.png" alt=""></div>
+        </div>
+    </div>
+
+
+    <div class="cover-main">
+
+        <!-- 1 -->
+        <div class="cover">
+            <div class="cover-bg">
+                <div class="fix-bg bg-star"><img src="images/star.png" alt=""></div>
+                <div class="event-name">
+                    <svg viewBox="0 0 480 100">
+                       <path id="pathTop" d="M 20,100 Q 240,-50 460,100" class="debug-path"></path>
+                       <text width="480">
+                           <textPath xlink:href="#pathTop" startOffset="50%" text-anchor="middle">
+                               <tspan class="title-main" dx="0.1em" dy="40">元宵猜灯谜</tspan>
+                           </textPath>
+                       </text>
+                   </svg>
+                </div>
+                <div class="event-date">
+                    <div class="hd">活动<br>时间</div>
+                    <div class="bd">
+                        <p>{{ activity | get_time_range_display | safe }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-begin" id="btn-show-form">
+                <a href="javascript:void(0);"><img src="images/btn-begin.png" alt=""></a>
+            </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="info hide">
+            <div class="form-bg">
+                <form action="" id="form-info">
+                    <ul class="form-box">
+                        <!-- <li> -->
+                        <!-- <div class="inp-box"> -->
+                        <!-- <label class="inp-label">工号*</label> -->
+                        <!-- 添加了 id="input_job_id" -->
+                        <!-- <input class="form-ele form-input" name="user_code" id="input_job_id" placeholder="请输入工号" type="text"> -->
+                        <!-- </div> -->
+                        <!-- </li> -->
+                        <li>
+                            <div class="inp-box">
+                                <label class="inp-label">头像*</label>
+                                <div class="avt-preview" id="avt-preview"><img src="" id="imgPreview" alt=""></div>
+                                <label class="file-lable">
+                                    <input type="file" name="" id="fileInput" accept="image/*">
+                                </label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="inp-box">
+                                <label class="inp-label">姓名*</label>
+                                <!-- 添加了 id="input_username" -->
+                                <input class="form-ele form-input" name="username" id="input_username"
+                                       placeholder="请输入姓名" type="text">
+                            </div>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <!-- 给按钮容器加上 id="btn-submit" 方便绑定事件 -->
+            <div class="btn-begin" id="btn-submit">
+                <a href="javascript:void(0);"><img src="images/btn-begin.png" alt=""></a>
+            </div>
+        </div>
+
+        <!-- 3 -->
+
+    </div>
+
+    <div class="fix-bg bg-fireworks1"><img src="images/bg-fireworks.png" alt=""></div>
+    <div class="fix-bg bg-fireworks2"><img src="images/bg-fireworks.png" alt=""></div>
+    <div class="fix-bg bg-bottom"><img src="images/bg-bottom.png" alt=""></div>
+    <div class="fix-bg bg-bottom-cloud"><img src="images/bg-bottom-cloud.png" alt=""></div>
+    <div class="fix-bg bg-lantern"><img src="images/bg-lantern.png" alt=""></div>
+</div>
+
+
+<script type="text/javascript" src="js/lib.js"></script>
+<script>
+    $('#btn-show-form').click(function (e) {
+        $('body').addClass('show-form')
+        e.preventDefault();
+    });
+
+    function showHome() {
+        $('body').removeClass('show-form');
+    };
+</script>
+
+<script>
+    // 绑定登录按钮点击事件
+    $('#btn-submit').click(function (e) {
+        e.preventDefault(); // 阻止默认链接跳转
+        var userName = $('#input_username').val();
+        if (!userName) {
+            alert("请输入姓名");
+            return;
+        }
+
+        // 获取文件输入
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+        if (!file) {
+            alert("请选择头像");
+            return;
+        }
+        // 创建 FormData 对象
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('username', userName);
+        
+        // 调试：显示请求地址
+        // alert("正在请求: " + window.location.origin + "/login");
+
+        $.ajax({
+            url: "/login",
+            type: "POST",
+            data: formData,
+            processData: false,  // 告诉jQuery不要处理数据
+            contentType: false,  // 告诉jQuery不要设置contentType
+            dataType: "json",
+            success: function (response) {
+                if (response.user_info) {
+                    window.location.replace(`/q?r_id={{riddle_id}}`)
+                } else {
+                    alert(response.error || "登录失败，请重试");
+                }
+            },
+            error: function (xhr, status, error) {
+                alert(error);
+                var msg = "请求失败";
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    msg = xhr.responseJSON.error;
+                }
+                alert(msg);
+            }
+        });
+    });
+</script>
+
+
+</body>
+</html>

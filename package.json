@@ -1,0 +1,36 @@
+{
+  "name": "lantern-riddle-node",
+  "version": "1.0.0",
+  "description": "``python -m nuitka --onefile --standalone --windows-console-mode=disable --include-data-dir=static=static --output-dir=build  main.py ``",
+  "main": "index.js",
+  "scripts": {
+    "start": "bun app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:frontend": "cd admin && bun run build -- --outDir ../template/admin --emptyOutDir",
+    "build:tauri": "bun build.js",
+    "build:standalone": "bun build.js --standalone",
+    "build": "bun build.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/node-server": "^1.19.9",
+    "better-sqlite3": "^12.6.2",
+    "body-parser": "^2.2.2",
+    "chokidar": "^3.6.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "hono": "^4.12.3",
+    "moment": "^2.30.1",
+    "multer": "^2.0.2",
+    "nunjucks": "^3.2.4",
+    "socket.io": "^4.8.3",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.0"
+  }
+}

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta content="telephone=no" name="format-detection"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1"/>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
+    <title>{{ activity.name }}</title>
+    <link rel="stylesheet" href="css/style.css"/>
+    <script type="text/javascript" src="js/common.js"></script>
+    <script type="text/javascript" src="js/qrcode.min.js"></script>
+    <script src="js/socket.io.min.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <div class="lantern-box size-l lantern-box-1" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="lantern-box size-s lantern-box-2" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="lantern-box size-m lantern-box-3" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="lantern-box size-s lantern-box-4" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="lantern-box size-l lantern-box-5" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+
+    <div class="lantern-box size-m lantern-box-6" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="lantern-box size-l lantern-box-7" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+
+    <div class="lantern-box size-s lantern-box-8" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+
+    <div class="lantern-box size-s lantern-box-9" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="lantern-box size-s lantern-box-10" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+
+    <div class="lantern-box size-l lantern-box-11" data-riddle="none">
+        <div class="bg">
+            <div class="con">
+            </div>
+        </div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="tit">
+        <svg viewBox="0 0 480 200">
+           <path id="pathTop" d="M 20,130 Q 240,-20 460,130" class="debug-path"></path>
+           <path id="pathBottom" d="M 100,160 Q 240,90 380,160" class="debug-path"></path>
+           <text width="480">
+               <textPath xlink:href="#pathTop" startOffset="50%" text-anchor="middle">
+                   <tspan class="title-main" dx="0.1em" dy="40">{{ activity.name }}</tspan>
+               </textPath>
+           </text>
+       </svg>
+    </div>
+    
+    
+    <a href="/admin/index.html" class="back-admin"><svg t="1772148758991" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2621"><path d="M533.333333 64a21.333333 21.333333 0 0 1 21.333334 21.333333v42.666667a21.333333 21.333333 0 0 1-21.333334 21.333333H170.666667v725.333334h362.666666a21.333333 21.333333 0 0 1 21.333334 21.333333v42.666667a21.333333 21.333333 0 0 1-21.333334 21.333333H170.666667a85.333333 85.333333 0 0 1-85.226667-81.066667L85.333333 874.666667V149.333333a85.333333 85.333333 0 0 1 81.066667-85.226666L170.666667 64h362.666666z m194.581334 219.584l183.168 183.168a64 64 0 0 1 2.88 87.424l-2.88 3.072-183.168 183.168a21.333333 21.333333 0 0 1-30.165334 0l-30.165333-30.165333a21.333333 21.333333 0 0 1 0-30.165334L792.96 554.666667H362.666667a21.333333 21.333333 0 0 1-21.333334-21.333334v-42.666666a21.333333 21.333333 0 0 1 21.333334-21.333334h430.293333l-125.376-125.418666a21.333333 21.333333 0 0 1 0-30.165334l30.165333-30.165333a21.333333 21.333333 0 0 1 30.165334 0z" fill="#E35E43" p-id="2622"></path></svg></a>
+    
+    <div class="fixed-bg bg-flower-3"><img src="images/bg-flower-2.png" alt=""></div>
+    <div class="fixed-bg bg-flower-2"><img src="images/bg-flower-1.png" alt=""></div>
+    <div class="fixed-bg bg-flower-1"><img src="images/bg-flower-1.png" alt=""></div>
+    <div class="fixed-bg bg-lantern-3"><img src="images/bg-Lantern-3.png" alt=""></div>
+    <div class="fixed-bg bg-lantern-2"><img src="images/bg-Lantern-2.png" alt=""></div>
+    <div class="fixed-bg bg-lantern-1"><img src="images/bg-Lantern-1.png" alt=""></div>
+    <div class="fixed-bg bg-fireworks-2"><img src="images/bg-fireworks.png" alt=""></div>
+    <div class="fixed-bg bg-fireworks-1"><img src="images/bg-fireworks.png" alt=""></div>
+    <div class="fixed-bg logo"><img src="images/logo.png" alt=""></div>
+    <div class="fixed-bg bg-bottom"><img src="images/bg-bottom.png" alt=""></div>
+</div>
+<script type="text/javascript" src="js/lib.js"></script>
+
+<!-- footer end -->
+</body>
+
+<script>
+    const socket = io();
+    let solvingIds = new Set(); // 正在显示中奖头像的灯谜ID
+
+    // 获取当前页面所有正在显示的灯谜ID
+    function getShowingIds() {
+        let ids = [];
+        $('[data-riddle-id]').each(function() {
+            ids.push($(this).attr('data-riddle-id'));
+        });
+        return ids;
+    }
+
+    async function initRiddle(specificEl) {
+        let riddleBoxes = specificEl ? $(specificEl) : $('[data-riddle="none"]');
+        const els = riddleBoxes.toArray();
+        if (!els.length) return;
+        console.log(els.length);
+
+        const showingIds = getShowingIds();
+        
+        try {
+            const res = await $.ajax({
+                url: 'riddles',
+                type: 'get',
+                data: { 
+                    page: 1, 
+                    pageSize: els.length, 
+                    exclude_ids: showingIds.join(',') 
+                }
+            });
+
+            if (res.code === 200) {
+                const items = Array.isArray(res.data) ? res.data : [res.data];
+                els.forEach((el, i) => {
+                    const riddle = items[i];
+                    if (riddle) {
+                        $(el).show();
+                        $(el).find('.con').html('');
+                        // 使用后端传过来的本机 IP，如果不存在则使用 window.location.origin
+                        {% if local_ip %}
+                        const baseUrl = `http://{{ local_ip }}:9000`;
+                        {% else %}
+                        const baseUrl = window.location.origin;
+                        {% endif %}
+                        new QRCode($(el).find('.con')[0], {
+                            text: `${baseUrl}/q?r_id=${riddle.id}`,
+                            width: 200, 
+                            height: 200,
+                            colorDark: "#000000", 
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                        $(el).removeAttr('data-riddle').attr('data-riddle-id', riddle.id);
+                    } else {
+                        // 如果后端返回的题目不够分，隐藏多余的灯笼
+                        $(el).hide().attr('data-riddle', 'none').removeAttr('data-riddle-id');
+                    }
+                });
+            } else {
+                // code 不是 200 (比如 404)，全部隐藏
+                riddleBoxes.hide().attr('data-riddle', 'none');
+            }
+        } catch (e) {
+            console.error('Fetch riddles failed:', e);
+            // 请求失败也先隐藏
+            riddleBoxes.hide();
+        }
+    }
+    
+
+    // 初始加载
+    initRiddle();
+
+    // 监听 WebSocket 事件
+    socket.on('riddle_solved', function(data) {
+        console.log('Riddle solved:', data);
+        const $lantern = $(`[data-riddle-id="${data.riddle_id}"]`);
+        
+        if ($lantern.length > 0) {
+            // 1. 显示中奖者头像
+            const avatarUrl = data.solver_avatar || 'images/logo.png';
+            $lantern.find('.con').html(`<img style="height: 100%; border-radius: 50%; border: 4px solid #f00;" src="${avatarUrl}" alt="">`);
+            
+            // 标记这盏灯正在冷却中
+            $lantern.removeAttr('data-riddle-id');
+            $lantern.attr('data-status', 'solved');
+
+            // 2. 15秒后恢复并加载新题
+            setTimeout(() => {
+                $lantern.removeAttr('data-status');
+                $lantern.attr('data-riddle', 'none');
+                initRiddle($lantern);
+            }, 15000);
+        }
+    });
+
+    // 定期检查是否有空余灯笼需要填补（针对管理员刚加题的情况）
+  /*  setInterval(() => {
+        if ($('[data-riddle="none"]').length > 0) {
+            initRiddle();
+        }
+    }, 10000);*/
+
+</script>
+
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta content="telephone=no" name="format-detection"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1"/>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>元宵灯谜</title>
+    <link rel="stylesheet" href="css/style.css"/>
+    <script type="text/javascript" src="js/common.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <div class="top-bar">
+        <div class="bar-l">
+            <!-- <div class="back"><a href="/scan.html"></a></div> -->
+            <!-- <div class="logo"><img src="images/logo.png" alt=""></div> -->
+        </div>
+        <div class="bar-r">
+            <a href="#modal-history" class="btn-history"></a>
+        </div>
+    </div>
+
+    <div class="modal modal-history" id="modal-history">
+        <div class="hd">我的记录<a href="#" class="close-pop" rel="modal:close"><i class="iconfont icon-wrong"></i></a>
+        </div>
+        <div class="bd">
+            <ul class="list-history scroll-bar">
+                <!-- <li>
+                    <div class="history-card">
+                        <div class="card-header">2026-2-12 21:31</div>
+                        <div class="divider"></div>
+                        <div class="content">色彩鲜艳丛中飞，鳞片雨衣格外美，色彩鲜艳丛中飞，鳞片雨衣格外美
+                            色彩鲜艳丛中飞，鳞片雨衣格外美
+                        </div>
+                        <div class="answer-row label-correct">
+                            <span>答案： A.蝙蝠</span>
+                            <i class="iconfont"></i>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="history-card">
+                        <div class="card-header">2026-2-12 21:31</div>
+                        <div class="divider"></div>
+                        <div class="content">
+                            色彩鲜艳丛中飞，鳞片雨衣格外美
+                        </div>
+                        <div class="answer-row label-wrong">
+                            <span>答案： A.蝙蝠</span>
+                            <i class="iconfont"></i>
+                        </div>
+                    </div>
+                </li>
+                 -->
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="cover-main">
+
+        <!-- 3 -->
+        <div class="question">
+            <div class="box-top">
+                <div class="qa-hd"><img src="images/tit2.png" alt=""></div>
+            </div>
+            <div class="box-middle">
+                <div class="qa-bd">
+                    <div class="scroll-bar">
+                        <div class="topic-hd">
+                            <h3>
+                                {{ riddle.question }}</h3>
+                            <p>({{riddle.remark}})</p>
+                        </div>
+                        <div class="topic-bd">
+                            <div class="options" id="options-container">
+                                <!--循环渲染options-->
+                                {% for item in riddle.options %}
+                                <button class="option-btn" data-key="{{item}}">
+                                    <span class="text">{{item}}</span>
+                                    <span class="status-icon"></span>
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-bottom"></div>
+        </div>
+    </div>
+
+    <div class="fix-bg bg-fireworks1"><img src="images/bg-fireworks.png" alt=""></div>
+    <div class="fix-bg bg-fireworks2"><img src="images/bg-fireworks.png" alt=""></div>
+    <div class="fix-bg bg-bottom"><img src="images/bg-bottom.png" alt=""></div>
+    <div class="fix-bg bg-bottom-cloud"><img src="images/bg-bottom-cloud.png" alt=""></div>
+    <div class="fix-bg bg-lantern"><img src="images/bg-lantern.png" alt=""></div>
+</div>
+
+
+<script type="text/javascript" src="js/lib.js"></script>
+
+<script>
+    function successAniamte() {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: {y: 0.6},
+            colors: ['#FCD34D', '#F87171', '#FFFFFF']
+        });
+        setTimeout(() => confetti({particleCount: 100, spread: 100, origin: {y: 0.6}}), 500);
+    }
+</script>
+<script>
+    // 标记是否已经回答过
+    let hasAnswered = false;
+
+    $('#options-container .option-btn').click(function (e) {
+        e.preventDefault();
+        submitAnswer(this, $(this).data('key'));
+    });
+
+    async function submitAnswer(clickedBtn, answerKey) {
+        /*   if (hasAnswered) return;
+           hasAnswered = true;
+   */
+        const $clickedBtn = $(clickedBtn);
+        $clickedBtn.css("transform", "scale(0.98)");
+
+        try {
+            // 1. 请求 API
+            const response = await mockApiCheck(answerKey);
+            // 假设 API 返回结构为: { isCorrect: boolean, correctKey: string }
+
+            $clickedBtn.css("transform", "scale(1)"); // 恢复缩放
+
+            // 2. 根据 API 结果处理 UI
+            if (response.success) {
+                // --- 情况一：用户答对了 ---
+                successAniamte();
+                markButtonAsCorrect($clickedBtn);
+            } else {
+                alert(response.msg);
+                // --- 情况二：用户答错了 或者 已经答过了 ---
+                if (response.code == 400) return;
+
+                markButtonAsWrong($clickedBtn);
+
+                const correctKeyStr = response.correctKey;
+
+                const $actualCorrectBtn = $(`.option-btn[data-key="${correctKeyStr}"]`);
+
+                if ($actualCorrectBtn.length > 0) {
+                    markButtonAsCorrect($actualCorrectBtn);
+                }
+            }
+
+        } catch (error) {
+            alert(error);
+            hasAnswered = false;
+        } finally {
+            disableAllButtons();
+        }
+    }
+
+    function markButtonAsCorrect(btn) {
+        $(btn).addClass('correct').find('.status-icon').html('<i class="iconfont icon-right"></i>');
+    }
+
+    function markButtonAsWrong(btn) {
+        $(btn).addClass('wrong').find('.status-icon').html('<i class="iconfont icon-wrong"></i>');
+    }
+
+    function disableAllButtons() {
+        $('.option-btn').prop('disabled', true);
+    }
+
+
+
+    function mockApiCheck(userSelectedKey) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: '/guess',
+                type: 'post',
+                data: {
+                    riddle_id: "{{riddle.id}}",
+                    answer: userSelectedKey
+                },
+                success: function (res) {
+                    resolve(res);
+                },
+                error: function (err) {
+                    reject(err);
+                }
+            });
+        });
+    }
+
+    function getRecords() {
+        $.ajax({
+            url: '/my/records',
+            type: 'get',
+            success: function (res) {
+                renderHistory(res);
+            },
+            error: function (err) {
+                console.log(res);
+            }
+        });
+    }
+
+    // 渲染 HTML 列表
+    function renderHistory(data) {
+        var $list = $('.list-history');
+        $list.empty();
+
+        // 2. 如果没有数据，可以渲染一个空提示
+        if (!data || data.length === 0) {
+            $list.append('<li style="text-align:center; padding: 20px;">暂无答题记录</li>');
+            return;
+        }
+
+        // 3. 遍历数据拼接 HTML 字符串
+        var htmlStr = '';
+        data.forEach(function (item) {
+            htmlStr += `
+                <li>
+                    <div class="history-card">
+                        <div class="card-header">${item.solve_time}</div>
+                        <div class="divider"></div>
+                        <div class="content">${item.riddle_question}</div>
+                        <div class="answer-row ${item.is_solved?"label-correct":"label-wrong"}">
+                            <span>正确答案：${item.riddle_answer}</span>
+                            <i class="iconfont"></i>
+                        </div>
+                    </div>
+                </li>
+            `;
+        });
+
+        $list.append(htmlStr);
+    }
+
+    $('#modal-history').on($.modal.BEFORE_OPEN, function (event, modal) {
+        getRecords();
+    });
+
+</script>
+</body>
+</html>
