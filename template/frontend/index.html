@@ -151,6 +151,10 @@
         });
         return ids;
     }
+    
+    let baseUrl = window.location.origin;
+    
+    const isLocal = window.location.hostname === 'localhost' ||  window.location.hostname === '127.0.0.1';
 
     async function initRiddle(specificEl) {
         let riddleBoxes = specificEl ? $(specificEl) : $('[data-riddle="none"]');
@@ -180,10 +184,11 @@
                         $(el).find('.con').html('');
                         // 使用后端传过来的本机 IP，如果不存在则使用 window.location.origin
                         {% if local_ip %}
-                        const baseUrl = `http://{{ local_ip }}:9000`;
-                        {% else %}
-                        const baseUrl = window.location.origin;
+                        if (isLocal) {
+                            baseUrl = `http://{{ local_ip }}:9000`;
+                        }
                         {% endif %}
+                        
                         new QRCode($(el).find('.con')[0], {
                             text: `${baseUrl}/q?r_id=${riddle.id}`,
                             width: 200, 

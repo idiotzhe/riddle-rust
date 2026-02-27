@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 const service = axios.create({
   // 在 Tauri 中，我们需要指向 Axum 后端的完整地址
-  baseURL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'http://localhost:9000/pro-api' : '/pro-api'),
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/pro-api',
   timeout: 5000
 })
 

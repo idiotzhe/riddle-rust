@@ -53,7 +53,7 @@ const handleSave = async () => {
 // };
 const openActivity = () => {
   // 直接在当前窗口跳转到活动大屏页面
-  window.location.href = 'http://127.0.0.1:9000/frontend/index';
+   window.location.href = `${window.location.origin}/frontend/index`;
 };
 
 
