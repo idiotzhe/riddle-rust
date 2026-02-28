@@ -390,20 +390,28 @@ pub async fn guess(
             return Json(json!({ "success": false, "msg": "手慢了，已被抢答！", "code": 400 })).into_response();
         }
 
-        sqlx::query("UPDATE riddles SET is_solved = 1, solver_id = ? WHERE id = ?")
+        // 执行更新和插入
+        let update_res = sqlx::query("UPDATE riddles SET is_solved = 1, solver_id = ? WHERE id = ?")
             .bind(current_user.id)
             .bind(riddle_id)
             .execute(&state.db)
-            .await
-            .unwrap();
+            .await;
 
-        sqlx::query("INSERT INTO guess_records (user_id, riddle_id, is_solved, solve_time) VALUES (?, ?, 1, ?)")
+        if let Err(e) = update_res {
+             return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": format!("更新失败: {}", e) }))).into_response();
+        }
+
+        let insert_res = sqlx::query("INSERT INTO guess_records (user_id, riddle_id, is_solved, solve_time) VALUES (?, ?, 1, ?)")
             .bind(current_user.id)
             .bind(riddle_id)
             .bind(now_time)
             .execute(&state.db)
-            .await
-            .unwrap();
+            .await;
+
+        if let Err(_) = insert_res {
+            // 如果插入失败（通常是已经存在记录），虽然对用户透明，但我们停止后续动作
+            return Json(json!({ "success": true, "msg": "恭喜你！抢答成功！", "code": 200 })).into_response();
+        }
 
         let _ = state.io.emit("riddle_solved", json!({
             "riddle_id": riddle_id,
@@ -413,13 +421,13 @@ pub async fn guess(
 
         return Json(json!({ "success": true, "msg": "恭喜你！抢答成功！", "code": 200 })).into_response();
     } else {
-        sqlx::query("INSERT INTO guess_records (user_id, riddle_id, is_solved, solve_time) VALUES (?, ?, 0, ?)")
+        let _ = sqlx::query("INSERT INTO guess_records (user_id, riddle_id, is_solved, solve_time) VALUES (?, ?, 0, ?)")
             .bind(current_user.id)
             .bind(riddle_id)
             .bind(now_time)
             .execute(&state.db)
-            .await
-            .unwrap();
+            .await;
+            
         return Json(json!({ "success": false, "msg": "答案不对，请再接再厉！" })).into_response();
     }
 }
@@ -434,9 +442,10 @@ pub async fn get_my_records(
     };
 
     let records: Vec<GuessRecordWithInfo> = sqlx::query_as(
-        "SELECT gr.*, r.question as riddle_question, r.answer as riddle_answer 
+        "SELECT gr.*, u.username as user_name, r.question as riddle_question, r.answer as riddle_answer 
          FROM guess_records gr
          JOIN riddles r ON gr.riddle_id = r.id
+         JOIN users u ON gr.user_id = u.id
          WHERE gr.user_id = ? 
          ORDER BY gr.solve_time DESC"
     )
@@ -445,5 +454,13 @@ pub async fn get_my_records(
     .await
     .unwrap_or_default();
 
-    Json(records).into_response()
+    let result: Vec<serde_json::Value> = records.into_iter().map(|rec| {
+        let mut val = json!(rec);
+        if let Some(st) = rec.solve_time {
+            val["solve_time"] = json!(st.format("%Y-%m-%d %H:%M:%S").to_string());
+        }
+        val
+    }).collect();
+
+    Json(result).into_response()
 }

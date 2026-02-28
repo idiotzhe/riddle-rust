@@ -36,16 +36,53 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    // 数据库路径：始终在可执行文件同级目录
-    let db_url = "sqlite:lantern.db";
+    // 数据库路径：使用 mode=rwc，如果文件不存在则自动创建
+    let db_url = "sqlite:lantern.db?mode=rwc";
     
-    // 如果数据库文件不存在，sqlx 会尝试连接失败。
-    // 在实际生产中，你可能需要一个初始化脚本，这里我们假设数据库已存在或由用户提供
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(db_url)
         .await
-        .expect("Failed to connect to lantern.db. Please ensure lantern.db exists in the same folder.");
+        .expect("Failed to connect to lantern.db");
+
+    // --- 自动初始化数据库表结构 ---
+    sqlx::query(r#"
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            avatar TEXT,
+            user_code TEXT UNIQUE,
+            token TEXT UNIQUE,
+            register_time DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS riddles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT NOT NULL,
+            remark TEXT,
+            options_json TEXT NOT NULL DEFAULT '[]',
+            answer TEXT NOT NULL,
+            add_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_solved BOOLEAN DEFAULT 0,
+            solver_id INTEGER,
+            FOREIGN KEY (solver_id) REFERENCES users(id)
+        );
+        CREATE TABLE IF NOT EXISTS activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            start_time DATETIME NOT NULL,
+            end_time DATETIME NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS guess_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            riddle_id INTEGER NOT NULL,
+            solve_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_solved BOOLEAN DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (riddle_id) REFERENCES riddles(id),
+            UNIQUE(user_id, riddle_id)
+        );
+    "#).execute(&pool).await.expect("Failed to initialize database tables");
 
     // 初始化 Tera 并加载嵌入的模板
     let mut tera = Tera::default();
