@@ -33,7 +33,7 @@ body {
   min-width: 1000px;
 }
 body,html{
-  overflow: auto;
+  overflow: hidden;
 }
 /* Subtle pattern overlay */
 body::before {
