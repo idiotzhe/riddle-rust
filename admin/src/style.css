@@ -15,6 +15,7 @@
   box-sizing: border-box;
 }
 
+
 .el-input{
   --el-text-color-regular: #EF5328;
 }
@@ -30,9 +31,10 @@ body {
   color: var(--theme-text-brown);
   min-height: 100vh;
   min-width: 1000px;
-  overflow-x: auto;
 }
-
+body,html{
+  overflow: auto;
+}
 /* Subtle pattern overlay */
 body::before {
   content: "";
