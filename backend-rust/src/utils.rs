@@ -7,6 +7,11 @@ pub fn get_local_ip() -> Option<String> {
     socket.local_addr().ok().map(|addr| addr.ip().to_string())
 }
 
+pub fn get_beijing_now() -> NaiveDateTime {
+    let utc_now = chrono::Utc::now().naive_utc();
+    utc_now + chrono::Duration::hours(8)
+}
+
 pub fn get_time_range_display(start: NaiveDateTime, end: NaiveDateTime) -> String {
     if start.date() == end.date() {
         format!("<p>{}</p><p>{}~{}</p>", 
