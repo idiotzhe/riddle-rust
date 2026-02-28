@@ -170,6 +170,7 @@ pub async fn get_q(
                     riddle_val["options"] = json!(options);
                     
                     ctx.insert("riddle", &riddle_val);
+                    ctx.insert("user", &user.unwrap());
                     if let Ok(html) = state.tera.render("question.html", &ctx) {
                         return Html(html).into_response();
                     }
