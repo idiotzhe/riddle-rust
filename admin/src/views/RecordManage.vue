@@ -32,7 +32,7 @@ const handleExport = async () => {
     const url = window.URL.createObjectURL(new Blob([blob]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `records-${new Date().getTime()}.xlsx`);
+    link.setAttribute('download', `records-${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

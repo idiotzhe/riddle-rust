@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const service = axios.create({
-  // 在 Tauri 中，我们需要指向 Axum 后端的完整地址
+  // 使用相对路径，确保在服务器部署时能自动指向当前域名/IP
   baseURL: import.meta.env.VITE_API_BASE_URL || '/pro-api',
   timeout: 5000
 })

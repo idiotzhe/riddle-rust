@@ -52,6 +52,14 @@ pub async fn get_users(
     let total: (i64,) = sqlx::query_as(&count_query).fetch_one(&state.db).await.unwrap_or((0,));
     let items: Vec<User> = sqlx::query_as(&data_query).fetch_all(&state.db).await.unwrap_or_default();
 
+    let list: Vec<serde_json::Value> = items.into_iter().map(|u| {
+        let mut val = json!(u);
+        if let Some(t) = u.register_time {
+            val["register_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+        }
+        val
+    }).collect();
+
     Json(json!({
         "code": 200,
         "message": "success",
@@ -59,7 +67,7 @@ pub async fn get_users(
             "total": total.0,
             "page": page,
             "totalPages": (total.0 as f64 / page_size as f64).ceil() as i64,
-            "list": items
+            "list": list
         }
     }))
 }
@@ -102,6 +110,9 @@ pub async fn get_riddles(
         let options: Vec<String> = serde_json::from_str(&r.options_json).unwrap_or_default();
         let mut val = json!(r);
         val["options"] = json!(options);
+        if let Some(t) = r.add_time {
+            val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+        }
         val
     }).collect();
 
@@ -159,6 +170,9 @@ pub async fn upsert_riddle(
             let options: Vec<String> = serde_json::from_str(&updated.options_json).unwrap_or_default();
             let mut val = json!(updated);
             val["options"] = json!(options);
+            if let Some(t) = updated.add_time {
+                val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+            }
             return Json(val).into_response();
         }
         return (StatusCode::NOT_FOUND, Json(json!({ "error": "不存在" }))).into_response();
@@ -174,7 +188,11 @@ pub async fn upsert_riddle(
             .execute(&state.db).await.unwrap();
         
         let inserted: Riddle = sqlx::query_as("SELECT * FROM riddles WHERE id = ?").bind(result.last_insert_rowid()).fetch_one(&state.db).await.unwrap();
-        return Json(json!(inserted)).into_response();
+        let mut val = json!(inserted);
+        if let Some(t) = inserted.add_time {
+            val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+        }
+        return Json(val).into_response();
     }
 }
 
@@ -213,6 +231,14 @@ pub async fn get_leaderboard(
     let total: (i64,) = sqlx::query_as(&count_query).fetch_one(&state.db).await.unwrap_or((0,));
     let items: Vec<GuessRecordWithInfo> = sqlx::query_as(&data_query).fetch_all(&state.db).await.unwrap_or_default();
 
+    let list: Vec<serde_json::Value> = items.into_iter().map(|rec| {
+        let mut val = json!(rec);
+        if let Some(t) = rec.solve_time {
+            val["solve_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+        }
+        val
+    }).collect();
+
     Json(json!({
         "code": 200,
         "message": "success",
@@ -220,9 +246,50 @@ pub async fn get_leaderboard(
             "total": total.0,
             "page": page,
             "totalPages": (total.0 as f64 / page_size as f64).ceil() as i64,
-            "list": items
+            "list": list
         }
     }))
+}
+
+pub async fn export_records(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<PaginationParams>,
+) -> impl IntoResponse {
+    let keyword = params.keyword.unwrap_or_default();
+
+    let mut data_query = String::from("SELECT gr.*, u.username as user_name, r.question as riddle_question, r.answer as riddle_answer FROM guess_records gr JOIN users u ON gr.user_id = u.id JOIN riddles r ON gr.riddle_id = r.id WHERE gr.is_solved = 1");
+    
+    if !keyword.is_empty() {
+        let clause = format!(" AND u.username LIKE '%{}%'", keyword);
+        data_query.push_str(&clause);
+    }
+
+    data_query.push_str(" ORDER BY gr.solve_time DESC");
+
+    let items: Vec<GuessRecordWithInfo> = sqlx::query_as(&data_query).fetch_all(&state.db).await.unwrap_or_default();
+
+    // Generate CSV content
+    let mut csv = String::from("\u{feff}记录ID,中奖用户,答对灯谜,谜底,中奖时间\n");
+    for item in items {
+        let time_str = item.solve_time.map(|t| t.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap_or_default();
+        csv.push_str(&format!(
+            "{},{},\"{}\",\"{}\",{}\n",
+            item.id,
+            item.user_name.unwrap_or_default(),
+            item.riddle_question.unwrap_or_default().replace("\"", "\"\""),
+            item.riddle_answer.unwrap_or_default().replace("\"", "\"\""),
+            time_str
+        ));
+    }
+
+    use axum::http::header;
+    (
+        [
+            (header::CONTENT_TYPE, "text/csv; charset=utf-8"),
+            (header::CONTENT_DISPOSITION, "attachment; filename=\"records.csv\""),
+        ],
+        csv,
+    )
 }
 
 pub async fn get_activity(

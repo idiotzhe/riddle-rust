@@ -59,6 +59,7 @@ pub struct RiddleWithSolver {
 pub struct GuessRecordWithInfo {
     pub id: i64,
     pub user_id: i64,
+    #[sqlx(default)]
     pub user_name: Option<String>,
     pub riddle_id: i64,
     pub riddle_question: Option<String>,

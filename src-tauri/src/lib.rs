@@ -163,6 +163,7 @@ async fn start_backend(db_path: std::path::PathBuf) {
         .route("/pro-api/riddles/import", post(handlers::admin::import_riddles))
         .route("/pro-api/riddle/:id", axum::routing::delete(handlers::admin::delete_riddle))
         .route("/pro-api/leaderboard", get(handlers::admin::get_leaderboard))
+        .route("/pro-api/records/export", get(handlers::admin::export_records))
         .route("/pro-api/activity", get(handlers::admin::get_activity).post(handlers::admin::update_activity))
         .fallback(static_handler)
         .layer(axum::extract::DefaultBodyLimit::max(20 * 1024 * 1024)) // 20MB
