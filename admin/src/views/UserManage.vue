@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, nextTick } from 'vue';
 import { Search, Edit, Delete } from '@element-plus/icons-vue';
 import { getUserList, deleteUser } from '../api/user';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
+const tableRef = ref(null);
 const users = ref([]);
 const loading = ref(false);
 const total = ref(0);
@@ -29,6 +30,12 @@ const fetchList = async () => {
     const data = await getUserList(queryParams.value);
     users.value = data.list || [];
     total.value = data.total || 0;
+    // 重置滚动条
+    nextTick(() => {
+      if (tableRef.value) {
+        tableRef.value.setScrollTop(0);
+      }
+    });
   } catch (error) {
     console.error('Failed to fetch users:', error);
     ElMessage.error('获取用户列表失败');
@@ -128,6 +135,7 @@ onMounted(() => {
     </el-dialog>
 
     <el-table 
+      ref="tableRef"
       v-loading="loading"
       :data="users" 
       class="gf-el-table" 

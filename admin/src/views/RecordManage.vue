@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { Search, Setting, Download } from '@element-plus/icons-vue';
 import { getRecordList, exportRecords } from '../api/record';
 import { ElMessage } from 'element-plus';
 
+const tableRef = ref(null);
 const records = ref([]);
 const loading = ref(false);
 const total = ref(0);
@@ -19,6 +20,12 @@ const fetchList = async () => {
     const data = await getRecordList(queryParams.value);
     records.value = data.list || [];
     total.value = data.total || 0;
+    // 重置滚动条
+    nextTick(() => {
+      if (tableRef.value) {
+        tableRef.value.setScrollTop(0);
+      }
+    });
   } catch (error) {
     console.error('Failed to fetch records:', error);
   } finally {
@@ -68,6 +75,7 @@ onMounted(() => {
     </div>
 
     <el-table 
+      ref="tableRef"
       v-loading="loading"
       :data="records" 
       class="gf-el-table" 

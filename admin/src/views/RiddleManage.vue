@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import RiddleModal from '../components/RiddleModal.vue';
 import {Search, Plus, Edit, Delete, Upload} from '@element-plus/icons-vue';
 import { getRiddleList, deleteRiddle,importRiddles } from '../api/riddle';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
+const tableRef = ref(null);
 const riddles = ref([]);
 const loading = ref(false);
 const total = ref(0);
@@ -23,6 +24,12 @@ const fetchList = async () => {
     const data = await getRiddleList(queryParams.value);
     riddles.value = data.list || [];
     total.value = data.total || 0;
+    // 数据加载后重置滚动条到顶部
+    nextTick(() => {
+      if (tableRef.value) {
+        tableRef.value.setScrollTop(0);
+      }
+    });
   } catch (error) {
     console.error('Failed to fetch riddles:', error);
   } finally {
@@ -119,6 +126,7 @@ onMounted(() => {
     <RiddleModal v-model="showModal" :edit-data="currentEditData" @success="fetchList" />
 
     <el-table 
+      ref="tableRef"
       v-loading="loading"
       :data="riddles" 
       class="gf-el-table" 
