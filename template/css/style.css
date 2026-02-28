@@ -2287,4 +2287,7 @@ body {
 .top-bar{
   align-items: center;
 }
+.btn-begin a{
+  display: block;
+}
 /*# sourceMappingURL=style.css.map */

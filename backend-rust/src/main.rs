@@ -1,7 +1,7 @@
 use axum::{
     routing::{get, post},
     Router,
-    response::{Html, IntoResponse, Response},
+    response::{IntoResponse, Response},
     body::Body,
     http::{header, StatusCode, Uri},
 };
@@ -144,6 +144,7 @@ async fn main() {
         .route("/pro-api/records/export", get(handlers::admin::export_records))
         .route("/pro-api/activity", get(handlers::admin::get_activity).post(handlers::admin::update_activity))
         .fallback(static_handler)
+        .layer(axum::extract::DefaultBodyLimit::max(20 * 1024 * 1024)) // 20MB
         .with_state(state)
         .layer(layer)
         .layer(CorsLayer::permissive());
@@ -155,17 +156,35 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-// 静态文件处理器：从嵌入的资源中读取
 async fn static_handler(uri: Uri) -> impl IntoResponse {
     let path = uri.path().trim_start_matches('/');
+    let file_path = if path.is_empty() || path == "index.html" {
+        "index.html".to_string()
+    } else {
+        path.to_string()
+    };
 
-    if path.is_empty() || path == "index.html" {
-        return Html(Asset::get("index.html").map(|content| std::str::from_utf8(content.data.as_ref()).unwrap().to_string()).unwrap_or_default()).into_response();
+    // --- 统一逻辑：优先从本地磁盘读取 (支持上传的头像等动态资源) ---
+    // 获取当前可执行文件同级目录下的 template 文件夹
+    let exe_path = std::env::current_exe().unwrap_or_default();
+    let exe_dir = exe_path.parent().unwrap_or(std::path::Path::new(""));
+    let local_template_path = exe_dir.join("template").join(&file_path);
+
+    // 检查本地是否存在该文件
+    if local_template_path.exists() && local_template_path.is_file() {
+        if let Ok(content) = std::fs::read(&local_template_path) {
+            let mime = mime_guess::from_path(&local_template_path).first_or_octet_stream();
+            return Response::builder()
+                .header(header::CONTENT_TYPE, mime.as_ref())
+                .body(Body::from(content))
+                .unwrap();
+        }
     }
 
-    match Asset::get(path) {
+    // --- 生产模式兜底：从嵌入资源中读取 ---
+    match Asset::get(&file_path) {
         Some(content) => {
-            let mime = mime_guess::from_path(path).first_or_octet_stream();
+            let mime = mime_guess::from_path(&file_path).first_or_octet_stream();
             Response::builder()
                 .header(header::CONTENT_TYPE, mime.as_ref())
                 .body(Body::from(content.data))

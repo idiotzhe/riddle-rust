@@ -114,7 +114,7 @@
 
 <script>
     // 绑定登录按钮点击事件
-    $('#btn-submit').click(function (e) {
+    $('#btn-submit').click(async function (e) {
         e.preventDefault(); // 阻止默认链接跳转
         var userName = $('#input_username').val();
         if (!userName) {
@@ -131,8 +131,12 @@
         }
         // 创建 FormData 对象
         var formData = new FormData();
-        formData.append('file', file);
+        var compressedBlob = await compressImage(file, 1000, 0.8);
+
+        var formData = new FormData();
+        formData.append('file', compressedBlob, "avatar.jpg"); // 用压缩后的
         formData.append('username', userName);
+
         
         // 调试：显示请求地址
         // alert("正在请求: " + window.location.origin + "/login");
@@ -161,6 +165,44 @@
             }
         });
     });
+    
+    
+    function compressImage(file, maxWidth, quality) {
+        return new Promise(function (resolve) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var img = new Image();
+                img.src = e.target.result;
+
+                img.onload = function () {
+                    var canvas = document.createElement("canvas");
+                    var ctx = canvas.getContext("2d");
+
+                    var width = img.width;
+                    var height = img.height;
+
+                    // ⭐ 限制最大宽度 1000px
+                    if (width > maxWidth) {
+                        var scale = maxWidth / width;
+                        width = maxWidth;
+                        height = height * scale;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(function (blob) {
+                        resolve(blob);
+                    }, "image/jpeg", quality); // 转jpg + 压缩质量
+                };
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
 </script>
 
 

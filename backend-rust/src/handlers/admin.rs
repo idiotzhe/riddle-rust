@@ -76,10 +76,16 @@ pub async fn delete_user(
     State(state): State<Arc<AppState>>,
     Path(id): Path<i64>,
 ) -> impl IntoResponse {
+    // 先删除该用户的答题记录
+    let _ = sqlx::query("DELETE FROM guess_records WHERE user_id = ?").bind(id).execute(&state.db).await;
+    
+    // 如果该用户是某些灯谜的获胜者，清除灯谜表中的获胜者信息
+    let _ = sqlx::query("UPDATE riddles SET is_solved = 0, solver_id = NULL WHERE solver_id = ?").bind(id).execute(&state.db).await;
+
     let result = sqlx::query("DELETE FROM users WHERE id = ?").bind(id).execute(&state.db).await;
     match result {
-        Ok(res) if res.rows_affected() > 0 => Json(json!({ "msg": "删除成功" })).into_response(),
-        _ => (StatusCode::NOT_FOUND, Json(json!({ "error": "用户不存在" }))).into_response(),
+        Ok(res) if res.rows_affected() > 0 => Json(json!({ "code": 200, "message": "删除成功" })).into_response(),
+        _ => Json(json!({ "code": 404, "message": "用户不存在或已被删除" })).into_response(),
     }
 }
 
@@ -173,9 +179,9 @@ pub async fn upsert_riddle(
             if let Some(t) = updated.add_time {
                 val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
             }
-            return Json(val).into_response();
+            return Json(json!({ "code": 200, "message": "更新成功", "data": val })).into_response();
         }
-        return (StatusCode::NOT_FOUND, Json(json!({ "error": "不存在" }))).into_response();
+        return Json(json!({ "code": 404, "message": "不存在" })).into_response();
     } else {
         let options_json = serde_json::to_string(&payload.options.unwrap_or_default()).unwrap();
         let now = get_beijing_now();
@@ -192,7 +198,7 @@ pub async fn upsert_riddle(
         if let Some(t) = inserted.add_time {
             val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
         }
-        return Json(val).into_response();
+        return Json(json!({ "code": 200, "message": "创建成功", "data": val })).into_response();
     }
 }
 
@@ -200,11 +206,11 @@ pub async fn delete_riddle(
     State(state): State<Arc<AppState>>,
     Path(id): Path<i64>,
 ) -> impl IntoResponse {
-    sqlx::query("DELETE FROM guess_records WHERE riddle_id = ?").bind(id).execute(&state.db).await.unwrap();
+    sqlx::query("DELETE FROM guess_records WHERE riddle_id = ?").bind(id).execute(&state.db).await.unwrap_or_default();
     let result = sqlx::query("DELETE FROM riddles WHERE id = ?").bind(id).execute(&state.db).await;
     match result {
-        Ok(res) if res.rows_affected() > 0 => Json(json!({ "msg": "删除成功" })).into_response(),
-        _ => (StatusCode::NOT_FOUND, Json(json!({ "error": "不存在" }))).into_response(),
+        Ok(res) if res.rows_affected() > 0 => Json(json!({ "code": 200, "message": "删除成功" })).into_response(),
+        _ => Json(json!({ "code": 404, "message": "不存在" })).into_response(),
     }
 }
 

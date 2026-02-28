@@ -10,7 +10,6 @@ use crate::{AppState, models::*, ax_extract::MaybeFormOrJson, utils::get_local_i
 use chrono::{Local};
 use serde_json::json;
 use uuid::Uuid;
-use std::path::PathBuf;
 use tokio::fs;
 
 #[derive(Deserialize)]
@@ -214,7 +213,11 @@ pub async fn login(
             if !filename.is_empty() {
                 let data = field.bytes().await.unwrap_or_default();
                 let today = Local::now().format("%Y/%m/%d").to_string();
-                let mut upload_dir = PathBuf::from("template/avatar");
+                
+                // 获取当前可执行文件同级目录下的 template/avatar 文件夹
+                let exe_path = std::env::current_exe().unwrap_or_default();
+                let exe_dir = exe_path.parent().unwrap_or(std::path::Path::new(""));
+                let mut upload_dir = exe_dir.join("template").join("avatar");
                 upload_dir.push(&today);
                 
                 if let Err(_) = fs::create_dir_all(&upload_dir).await {
