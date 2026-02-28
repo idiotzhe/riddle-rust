@@ -243,7 +243,7 @@ pub async fn login(
     // Generate unique code (8-character hex from UUID)
     let user_code = Uuid::new_v4().simple().to_string()[..8].to_uppercase();
     let dummy_token = Uuid::new_v4().to_string();
-    let now = Local::now().naive_local();
+    let now = get_beijing_now();
 
     let result = sqlx::query(
         "INSERT INTO users (username, avatar, user_code, token, register_time) VALUES (?, ?, ?, ?, ?)"
@@ -378,7 +378,7 @@ pub async fn guess(
         return Json(json!({ "success": false, "msg": "你已经猜过该题了！", "code": 400 })).into_response();
     }
 
-    let now_time = Local::now().naive_local();
+    let now_time = get_beijing_now();
     if user_answer.to_lowercase() == riddle.answer.to_lowercase() {
         // Re-check solve status
         let recheck: (bool,) = sqlx::query_as("SELECT is_solved FROM riddles WHERE id = ?")

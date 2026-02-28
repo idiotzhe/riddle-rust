@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize};
 use std::sync::Arc;
-use crate::{AppState, models::*};
+use crate::{AppState, models::*, utils::get_beijing_now};
 use chrono::{Local, NaiveDateTime};
 use serde_json::json;
 use calamine::{Reader, Xlsx};
@@ -178,7 +178,7 @@ pub async fn upsert_riddle(
         return (StatusCode::NOT_FOUND, Json(json!({ "error": "不存在" }))).into_response();
     } else {
         let options_json = serde_json::to_string(&payload.options.unwrap_or_default()).unwrap();
-        let now = Local::now().naive_local();
+        let now = get_beijing_now();
         let result = sqlx::query("INSERT INTO riddles (question, answer, remark, options_json, add_time) VALUES (?, ?, ?, ?, ?)")
             .bind(payload.question.unwrap_or_default())
             .bind(payload.answer.unwrap_or_default())
@@ -350,7 +350,7 @@ pub async fn import_riddles(
             };
             if let Some(Ok(range)) = excel.worksheet_range_at(0) {
                 let mut count = 0;
-                let now = Local::now().naive_local();
+                let now = get_beijing_now();
                 
                 let mut rows = range.rows();
                 let headers: Vec<String> = match rows.next() {
