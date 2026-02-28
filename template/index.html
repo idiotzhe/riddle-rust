@@ -131,7 +131,7 @@
         }
         // 创建 FormData 对象
         var formData = new FormData();
-        var compressedBlob = await compressImage(file, 1000, 0.8);
+        var compressedBlob = await compressImage(file, 500, 0.8);
 
         var formData = new FormData();
         formData.append('file', compressedBlob, "avatar.jpg"); // 用压缩后的
