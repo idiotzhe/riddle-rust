@@ -1,10 +1,15 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
+
 const service = axios.create({
-  // 使用相对路径，确保在服务器部署时能自动指向当前域名/IP
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/pro-api',
-  timeout: 5000
+ // 优先使用环境变量，如果没有，则判断当前环境
+ // 在 Tauri 环境下（通常是 localhost），强制指向 9000 端口
+ baseURL: import.meta.env.VITE_API_BASE_URL ||
+          (window.location.hostname === 'tauri.localhost' || window.location.hostname === 'localhost'
+           ? 'http://localhost:9000/pro-api'
+           : '/pro-api'),
+ timeout: 5000
 })
 
 // Request interceptor

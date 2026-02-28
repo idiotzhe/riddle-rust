@@ -51,10 +51,30 @@ const handleSave = async () => {
   // window.location.href =`${window.location.origin}/frontend/index`;
   // window.location.href =`${window.location.origin}/frontend/index`;
 // };
-const openActivity = () => {
+/*const openActivity = () => {
   // 直接在当前窗口跳转到活动大屏页面
    window.location.href = `${window.location.origin}/frontend/index`;
 };
+*/
+
+ const openActivity = () => {
+      const { hostname, protocol, origin } = window.location;
+   
+      let targetUrl = '';
+   
+      // 判断是否在 Tauri 环境 (tauri.localhost)
+      // 或者是在本地开发环境 (localhost，但端口不是 9000)
+      if (hostname === 'tauri.localhost' || (hostname === 'localhost' && window.location.port !== '9000')) {
+        // 桌面端环境：后端 API 和 页面 都在 9000 端口
+       targetUrl = `http://localhost:9000/frontend/index`;
+     } else {
+       // 服务器部署环境：前后端同源
+       targetUrl = `${origin}/frontend/index`;
+     }
+  
+     // 如果你坚持要在当前窗口跳转，则使用：
+     window.location.href = targetUrl;
+   };
 
 
 

@@ -226,7 +226,7 @@
         if ($lantern.length > 0) {
             // 1. 显示中奖者头像
             const avatarUrl = data.solver_avatar || 'images/logo.png';
-            $lantern.find('.con').html(`<img style="height: 100%; border-radius: 50%; border: 4px solid #f00;" src="${avatarUrl}" alt="">`);
+            $lantern.find('.con').html(`<img style="height: 100%; width: 100%; border: 4px solid #fff; object-fit:cover;" src="${avatarUrl}" alt="">`);
             
             // 标记这盏灯正在冷却中
             $lantern.removeAttr('data-riddle-id');
