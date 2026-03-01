@@ -99,6 +99,12 @@ const handleImport = () => {
 };
 
 
+const handleAddSuccess = () => {
+  // 如果是新增，回到第一页以查看最新添加的灯谜
+  queryParams.value.page = 1;
+  fetchList();
+};
+
 onMounted(() => {
   fetchList();
 });
@@ -123,7 +129,7 @@ onMounted(() => {
        <el-button type="primary" class="gf-btn-export" :icon="Upload" @click="handleImport">导入</el-button>
     </div>
 
-    <RiddleModal v-model="showModal" :edit-data="currentEditData" @success="fetchList" />
+    <RiddleModal v-model="showModal" :edit-data="currentEditData" @success="handleAddSuccess" />
 
     <el-table 
       ref="tableRef"

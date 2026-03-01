@@ -107,7 +107,7 @@ pub async fn get_riddles(
         data_query.push_str(&clause);
     }
 
-    data_query.push_str(&format!(" LIMIT {} OFFSET {}", page_size, offset));
+    data_query.push_str(&format!(" ORDER BY r.add_time DESC LIMIT {} OFFSET {}", page_size, offset));
 
     let total: (i64,) = sqlx::query_as(&count_query).fetch_one(&state.db).await.unwrap_or((0,));
     let items: Vec<RiddleWithSolver> = sqlx::query_as(&data_query).fetch_all(&state.db).await.unwrap_or_default();
