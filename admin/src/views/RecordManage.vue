@@ -35,17 +35,36 @@ const fetchList = async () => {
 
 const handleExport = async () => {
   try {
-    const blob = await exportRecords(queryParams.value);
-    const url = window.URL.createObjectURL(new Blob([blob]));
+    // 桌面端环境判断
+    const isDesktop = window.location.hostname === 'tauri.localhost' || window.location.hostname === 'localhost';
+    
+    // 如果是桌面端，告知后端强制保存到本地文件
+    const params = { ...queryParams.value };
+    if (isDesktop) {
+      params.save_locally = true;
+    }
+
+    const res = await exportRecords(params);
+    
+    // 如果返回的是 JSON 对象（后端已保存成功）
+    if (res && res.code === 200) {
+      ElMessage.success(res.message || '导出成功');
+      return;
+    }
+
+    // 如果返回的是 Blob 数据 (Web 环境下请求时通常返回 blob)
+    const url = window.URL.createObjectURL(new Blob([res]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `records-${new Date().getTime()}.csv`);
+    link.setAttribute('download', `灯谜记录-${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
     ElMessage.success('导出成功');
   } catch (error) {
     console.error('Export failed:', error);
+    ElMessage.error('导出失败');
   }
 };
 

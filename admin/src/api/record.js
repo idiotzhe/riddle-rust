@@ -27,10 +27,12 @@ export function getLeaderboard() {
  * @param {Object} params
  */
 export function exportRecords(params) {
+  // 如果是本地保存模式，不要指定 blob，让 request.js 默认处理成 json
+  const isSaveLocally = params && params.save_locally;
   return request({
     url: '/records/export',
     method: 'get',
     params,
-    responseType: 'blob'
+    responseType: isSaveLocally ? 'json' : 'blob'
   })
 }

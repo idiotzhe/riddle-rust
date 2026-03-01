@@ -257,12 +257,24 @@ pub async fn get_leaderboard(
     }))
 }
 
+#[derive(Deserialize)]
+pub struct ExportParams {
+    pub keyword: Option<String>,
+    pub save_locally: Option<bool>,
+}
+
 pub async fn export_records(
     State(state): State<Arc<AppState>>,
-    Query(params): Query<PaginationParams>,
+    headers: axum::http::HeaderMap,
+    Query(params): Query<ExportParams>,
 ) -> impl IntoResponse {
     let keyword = params.keyword.unwrap_or_default();
+    
+    // 自动检测环境：如果是从 tauri.localhost 发来的请求，默认开启本地保存
+    let origin = headers.get("origin").and_then(|v| v.to_str().ok()).unwrap_or("");
+    let is_tauri = origin.contains("tauri.localhost") || params.save_locally.unwrap_or(false);
 
+    // 【核心修改】导出接口强制忽略分页，查询全部中奖记录
     let mut data_query = String::from("SELECT gr.*, u.username as user_name, r.question as riddle_question, r.answer as riddle_answer FROM guess_records gr JOIN users u ON gr.user_id = u.id JOIN riddles r ON gr.riddle_id = r.id WHERE gr.is_solved = 1");
     
     if !keyword.is_empty() {
@@ -270,11 +282,12 @@ pub async fn export_records(
         data_query.push_str(&clause);
     }
 
+    // 依然保留按时间倒序，但不加 LIMIT 和 OFFSET
     data_query.push_str(" ORDER BY gr.solve_time DESC");
 
     let items: Vec<GuessRecordWithInfo> = sqlx::query_as(&data_query).fetch_all(&state.db).await.unwrap_or_default();
 
-    // Generate CSV content with BOM for Excel compatibility
+    // Generate CSV content with BOM
     let mut csv = String::from("\u{feff}记录ID,中奖用户,答对灯谜,谜底,中奖时间\n");
     for item in items {
         let time_str = item.solve_time.map(|t| t.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap_or_default();
@@ -288,6 +301,37 @@ pub async fn export_records(
         ));
     }
 
+    // --- 桌面端自动保存逻辑 ---
+    if is_tauri {
+        let filename = format!("灯谜中奖记录_{}.csv", Local::now().format("%Y%m%d_%H%M%S"));
+        
+        // 1. 尝试获取程序同级目录
+        let exe_dir = std::env::current_exe().ok()
+            .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+            .unwrap_or_else(|| std::env::current_dir().unwrap_or_default());
+
+        let save_path = exe_dir.join(&filename);
+
+        // 执行写入
+        match std::fs::write(&save_path, &csv) {
+            Ok(_) => {
+                return Json(json!({
+                    "code": 200,
+                    "message": format!("导出成功！文件已保存至程序所在目录：\n{}", filename),
+                    "data": save_path.to_string_lossy()
+                })).into_response();
+            },
+            Err(e) => {
+                // 如果权限不足，尝试写到用户的桌面（简单兜底）
+                return Json(json!({
+                    "code": 500,
+                    "message": format!("导出失败：文件写入错误 ({})。请尝试以管理员身份运行程序。", e)
+                })).into_response();
+            }
+        }
+    }
+
+    // --- 标准 Web 下载逻辑 ---
     use axum::http::header;
     (
         [
@@ -295,7 +339,7 @@ pub async fn export_records(
             (header::CONTENT_DISPOSITION, "attachment; filename=\"records.csv\""),
         ],
         csv,
-    )
+    ).into_response()
 }
 
 pub async fn get_activity(
