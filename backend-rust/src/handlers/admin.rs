@@ -168,20 +168,24 @@ pub async fn upsert_riddle(
 
             sqlx::query("UPDATE riddles SET question = ?, answer = ?, remark = ?, options_json = ?, is_solved = ?, solver_id = ? WHERE id = ?")
                 .bind(question).bind(answer).bind(remark).bind(options_json).bind(is_solved).bind(solver_id).bind(id)
-                .execute(&state.db).await.unwrap();
+                .execute(&state.db).await.unwrap_or_default();
             
-            let updated: RiddleWithSolver = sqlx::query_as("SELECT r.*, u.username as solver_name FROM riddles r LEFT JOIN users u ON r.solver_id = u.id WHERE r.id = ?")
-                .bind(id).fetch_one(&state.db).await.unwrap();
+            // 获取更新后的数据，使用 fetch_optional 避免 Panic
+            let updated: Option<RiddleWithSolver> = sqlx::query_as("SELECT r.*, u.username as solver_name, u.avatar as solver_avatar FROM riddles r LEFT JOIN users u ON r.solver_id = u.id WHERE r.id = ?")
+                .bind(id).fetch_optional(&state.db).await.unwrap_or(None);
             
-            let options: Vec<String> = serde_json::from_str(&updated.options_json).unwrap_or_default();
-            let mut val = json!(updated);
-            val["options"] = json!(options);
-            if let Some(t) = updated.add_time {
-                val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+            if let Some(upd) = updated {
+                let options: Vec<String> = serde_json::from_str(&upd.options_json).unwrap_or_default();
+                let mut val = json!(upd);
+                val["options"] = json!(options);
+                if let Some(t) = upd.add_time {
+                    val["add_time"] = json!(t.format("%Y-%m-%d %H:%M:%S").to_string());
+                }
+                return Json(json!({ "code": 200, "message": "更新成功", "data": val })).into_response();
             }
-            return Json(json!({ "code": 200, "message": "更新成功", "data": val })).into_response();
+            return Json(json!({ "code": 200, "message": "更新成功(未获取到回显数据)" })).into_response();
         }
-        return Json(json!({ "code": 404, "message": "不存在" })).into_response();
+        return Json(json!({ "code": 404, "message": "灯谜不存在" })).into_response();
     } else {
         let options_json = serde_json::to_string(&payload.options.unwrap_or_default()).unwrap();
         let now = get_beijing_now();
